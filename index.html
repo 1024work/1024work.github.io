@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统</title>
+</head>
+<style>
+    *{
+        padding: 0;
+        margin: 0;
+        background-color: #a2ffba;
+    }
+    #app{
+        display: flex;
+        justify-content: center;
+        margin: 100px;
+    }
+    table{
+        background-color: #fff;
+    }
+    table th{
+        height: 30px;
+        width: 200px;
+        text-align: center;
+        background-color: #abaaaa;
+    }
+    table td{
+        width: 200px;
+        text-align: center;
+    }
+
+
+    .btn-box{
+        width: 50px;
+        height: 30px;
+        border: none;
+        border-radius: 8px;
+        color: azure;
+    }
+
+    .btnBlue{
+        background-color: deepskyblue;
+    }
+
+    .btnOra{
+        background-color: coral;
+    }
+
+    .btnRed{
+        background-color: orangered;
+    }
+
+    .row-bgc{
+        background-color: #fff;
+    }
+
+    td>input{
+        height: 27px;
+        width: 100%;
+        border: none;
+        text-align: center;
+
+    }
+
+    .btn-add{
+        background-color: dodgerblue;
+        width: 50px;
+        height: 30px;
+        border: none;
+        border-radius: 5px;
+        color: white;
+    }
+
+    .btn-query{
+        background-color: gray;
+        width: 50px;
+        height: 30px;
+        border: none;
+        border-radius: 5px;
+        color: white;
+    }
+
+    div>input{
+        border: 1px solid gray;
+        height: 24px;
+        width: 150px;
+        border-radius: 5px;
+    }
+    span{
+        margin:0px 15px;
+    }
+
+    .title{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #72e5e1;
+        margin: 20px 0px;
+        height: 50px;
+        font-weight: bold;
+        font-size: 30px;
+        color: white;
+        box-shadow: 3px 3px 5px 1px red ;
+    }
+</style>
+<body>
+    <div id="app" v-cloak style="display: flex;flex-direction: column">
+            <div class="title">{{title2 | replaceStr}}</div>
+            <form style="display: flex;flex-direction: row;justify-content:space-between;padding-bottom: 15px">
+                <div>
+                    <span v-color >序号:</span><input  v-model="person.personId">
+                    <span >姓名:</span><input v-model="person.personName">
+                    <span >性别:</span><input v-model="person.personSex">
+                    <span >证件号:</span><input v-model="person.personIdCard">
+                </div>
+                <div>
+                    <button class="btn-add" @click.prevent="addPerson">
+                        添加
+                    </button>
+                    <button class="btn-query" @click.prevent="queryPerson">
+                        查询
+                    </button>
+                </div>
+            </form>
+        <table>
+            <tr>
+                <th>序号</th>
+                <th>姓名</th>
+                <th>性别</th>
+                <th>证件号</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+            <tr v-for="(item,index) in personList"  >
+                <td :class="{'row-bgc':index%2==0}"><input v-model="item.personId"               :readonly="isReadonly"/></td>
+                <td :class="{'row-bgc':index%2==0}"><input v-model="item.personName"             :readonly="isReadonly"/></td>
+                <td :class="{'row-bgc':index%2==0}"><input v-model="item.personSex"              :readonly="isReadonly"/></td>
+                <td :class="{'row-bgc':index%2==0}"><input v-model="item.personIdCard"           :readonly="isReadonly"/></td>
+                <td :class="{'row-bgc':index%2==0}">{{item.createDate | formatDateStr}}</td>
+                <td :class="{'row-bgc':index%2==0}">
+                    <button :class="['btn-box','btnBlue']" @click="addPerson">新增</button>
+                    <button :class="['btn-box','btnOra']"  @click="updatePerson">修改</button>
+                    <button :class="['btn-box','btnRed']"  @click="deletePerson(index)">删除</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+<script src="../vue.js"></script>
+  <script>
+
+      Vue.filter("replaceStr",function(value){
+          console.log("value========="+value)
+            value = value.replace('xxx',"");
+	        return value;
+      });
+
+
+      //时间过滤器
+      Vue.filter("formatDateStr",function(dateStr,format){
+          //得到特定的时间
+          var date = new Date(dateStr);
+          var year = date.getFullYear();
+          //ES6语法填充：var month = (date.getMonth()+1).toString().padStart(2, '0');
+          var month = date.getMonth()+1<10 ? '0'+ (date.getMonth()+1) : date.getMonth()+1;
+          var day = date.getDate()<10 ? '0' + date.getDate() : date.getDate();
+          var hh = date.getHours()<10 ? '0' + date.getHours() : date.getHours();
+          var mm = date.getMinutes()<10 ? '0' + date.getMinutes() : date.getMinutes();
+          var ss = date.getSeconds()<10 ? '0' + date.getSeconds() : date.getSeconds();
+
+          //return `${year}-${month}-${day}`;
+
+          if(format&&format.toLowerCase() === 'yyyy-mm-dd'){
+              return `${year}-${month}-${day}`;
+          }else if(format&&format.toLowerCase() === 'hh:mm:ss'){
+              return `${hh}:${mm}:${ss}`;
+          }else{
+              return `${year}-${month}-${day} ${hh}:${mm}:${ss}`;
+          }
+      });
+
+
+      //自定义指令
+      Vue.directive("color",{
+          inserted:function(el){
+              el.style.color = "blue";
+          }
+      })
+
+      let vue = new Vue({
+          el:"#app",
+          data(){
+              return {
+                  title:"xxx学生管理平台",
+                  person:{
+                      personId:'',
+                      personName:'',
+                      personSex:'',
+                      personIdCard:'',
+                      createDate:'',
+                 },
+                  personList:[{
+                      personId:'01',
+                      personName:'张三',
+                      personSex:'男',
+                      personIdCard:'2008',
+                      createDate:"2022-10-10",
+                  },{
+                      personId:'02',
+                      personName:'汪汪',
+                      personSex:'女',
+                      personIdCard:'2010',
+                      createDate:"2022-10-10",
+                  },{
+                      personId:'03',
+                      personName:'汪汪22',
+                      personSex:'女',
+                      personIdCard:'2010',
+                      createDate:"2022-10-10",
+                  }],
+                  btnBlue:'btn-blue',
+                  btnOra:'btn-ora',
+                  btnRed:'btn-red',
+                  isReadonly:false,
+              }
+          },
+          computed:{
+                title2:function(){
+                    let s = this.title.split("").reverse().join("");
+                    console.log("title2========"+s)
+                    let res = s.split("").reverse().join("");
+                    return res;
+                }
+          },
+          methods:{
+              addPerson(){
+
+                  this.person.createDate = new Date();
+                  this.personList.push(this.person);
+                  this.person={
+                      personId:'',
+                      personName:'',
+                      personSex:'',
+                      personIdCard:'',
+                      createDate:'',
+                  }
+              },
+
+              updatePerson(){
+                  alert(this.isReadonly)
+                  this.isReadonly = !this.isReadonly;
+              },
+              deletePerson(index){
+                  console.log(index)
+                  this.personList.splice(index,1);
+              },
+              queryPerson(){
+                  console.log(this.person.personName )
+                  this.personList = this.personList.filter(item=> !item.personName.indexOf(this.person.personName));
+
+              }
+          }
+
+      })
+  </script>
+
+</html>
